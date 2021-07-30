@@ -8,8 +8,11 @@ import org.objenesis.ObjenesisStd;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class ReflectionUtil {
     private ReflectionUtil() {
@@ -52,6 +55,20 @@ public class ReflectionUtil {
         return builder.toString();
     }
 
+    private static Method[] getInstanceMethods(Class<?> clazz) {
+        return Stream.of(clazz.getMethods(), clazz.getDeclaredMethods())
+                .flatMap(Arrays::stream)
+                .filter(m -> !Modifier.isStatic(m.getModifiers()))
+                .toArray(Method[]::new);
+    }
+
+    /**
+     * Creates a proxy object which redirects methods of proxyClass to ones with the same signature in the target
+     * @param proxyClass the class the proxy object will be
+     * @param target the target instance
+     * @param <T> the proxy type
+     * @return the proxy object
+     */
     @SuppressWarnings("unchecked")
     public static <T> T createProxy(Class<T> proxyClass, Object target) {
         ProxyFactory factory = new ProxyFactory();
@@ -59,12 +76,8 @@ public class ReflectionUtil {
         factory.setFilter(m -> true);
         Class<?> clazz = factory.createClass();
 
-        Map<String, Method> proxyMethods = new HashMap<>();
-        Class<?> targetClass = target.getClass();
-        for (Method m : targetClass.getMethods()) {
-            proxyMethods.put(toMethodDescriptor(m), m);
-        }
-        for (Method m : targetClass.getDeclaredMethods()) {
+        final Map<String, Method> proxyMethods = new HashMap<>();
+        for (Method m : getInstanceMethods(target.getClass())) {
             proxyMethods.put(toMethodDescriptor(m), m);
         }
 
@@ -79,7 +92,7 @@ public class ReflectionUtil {
         return (T) obj;
     }
 
-    public static Field getField(Class<?> clazz, String name) throws NoSuchFieldException {
+    private static Field getFieldByName(Class<?> clazz, String name) throws NoSuchFieldException {
         try {
             return clazz.getField(name);
         } catch (NoSuchFieldException e) {
@@ -87,21 +100,21 @@ public class ReflectionUtil {
         }
     }
 
-    public static void setStaticField(Class<?> clazz, String fieldName, Object newValue) {
+    public static void setField(Object instance, String fieldName, Object newValue) {
         try {
-            Field field = clazz.getDeclaredField(fieldName);
+            Field field = getFieldByName(instance.getClass(), fieldName);
             field.setAccessible(true);
-            field.set(null, newValue);
+            field.set(instance, newValue);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static void setField(Object instance, String fieldName, Object newValue) {
+    public static Object getField(Object instance, String fieldName) {
         try {
-            Field field = getField(instance.getClass(), fieldName);
+            Field field = getFieldByName(instance.getClass(), fieldName);
             field.setAccessible(true);
-            field.set(instance, newValue);
+            return field.get(instance);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
