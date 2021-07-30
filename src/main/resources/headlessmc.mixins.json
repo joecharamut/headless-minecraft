@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "rocks.spaghetti.headlessmc.mixin",
+  "compatibilityLevel": "JAVA_16",
+  "mixins": [
+    "MinecraftClientAccessor",
+    "PlayerListEntryInvoker"
+  ],
+  "client": [
+    "MinecraftClientMainMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

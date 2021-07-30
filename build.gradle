@@ -1,0 +1,54 @@
+plugins {
+    id "fabric-loom" version "0.8-SNAPSHOT"
+}
+
+sourceCompatibility = JavaVersion.VERSION_16
+targetCompatibility = JavaVersion.VERSION_16
+
+archivesBaseName = project.archives_base_name
+version = project.mod_version
+group = project.maven_group
+
+repositories {
+    mavenCentral()
+    maven { url = "https://m2.dv8tion.net/releases" }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation(fabricApi.module("fabric-api-base", "${project.fabric_version}"))
+
+    implementation include("net.dv8tion:JDA:4.3.0_295") {
+        exclude module: "opus-java"
+    }
+    implementation include("org.objenesis:objenesis:3.2")
+    implementation include("org.javassist:javassist:3.28.0-GA")
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // ensure that the encoding is set to UTF-8
+    it.options.encoding = "UTF-8"
+
+    // force java 16
+    it.options.release = 16
+}
+
+java {
+    withSourcesJar()
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.archivesBaseName}" }
+    }
+}
