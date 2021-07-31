@@ -7,13 +7,23 @@ import net.minecraft.util.math.MathHelper;
 public class SettableInput extends Input {
     private final ClientPlayerEntity player;
 
+    private boolean jumpingState;
+    private boolean sneakingState;
+    private boolean sprintingState;
+    private float forwardSpeed;
+    private float sidewaysSpeed;
+
     public SettableInput(ClientPlayerEntity player) {
         this.player = player;
     }
 
     @Override
     public void tick(boolean slowDown) {
-        // dont need to tick anything
+        this.jumping = jumpingState;
+        this.sneaking = sneakingState;
+        this.player.setSprinting(sprintingState);
+        this.movementForward = forwardSpeed;
+        this.movementSideways = sidewaysSpeed;
     }
 
     public void clear() {
@@ -24,20 +34,20 @@ public class SettableInput extends Input {
     }
 
     public void jumping(boolean state) {
-        this.jumping = state;
+        this.jumpingState = state;
     }
 
     public void sneaking(boolean state) {
-        this.sneaking = state;
+        this.sneakingState = state;
     }
 
     public void sprinting(boolean state) {
-        player.setSprinting(state);
+        this.sprintingState = state;
     }
 
     public void movement(float forward, float sideways) {
-        this.movementForward = MathHelper.clamp(forward, -1.0F, 1.0F);
-        this.movementSideways = MathHelper.clamp(sideways, -1.0F, 1.0F);
+        this.forwardSpeed = MathHelper.clamp(forward, -1.0F, 1.0F);
+        this.sidewaysSpeed = MathHelper.clamp(sideways, -1.0F, 1.0F);
     }
 
     public void look(float pitch, float yaw) {
