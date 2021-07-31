@@ -27,6 +27,10 @@ dependencies {
     implementation include("org.javassist:javassist:3.28.0-GA")
 }
 
+loom {
+    accessWidener = file("src/main/resources/headlessmc.accesswidener")
+}
+
 processResources {
     inputs.property "version", project.version
 

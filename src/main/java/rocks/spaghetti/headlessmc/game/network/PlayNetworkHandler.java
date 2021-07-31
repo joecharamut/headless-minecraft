@@ -76,7 +76,6 @@ import rocks.spaghetti.headlessmc.game.GameClient;
 import rocks.spaghetti.headlessmc.game.GameInteractionManager;
 import rocks.spaghetti.headlessmc.game.SettableInput;
 import rocks.spaghetti.headlessmc.game.render.WorldRendererStub;
-import rocks.spaghetti.headlessmc.mixin.PlayerListEntryInvoker;
 
 import java.util.*;
 import java.util.function.IntConsumer;
@@ -521,12 +520,12 @@ public class PlayNetworkHandler implements ClientPlayPacketListener {
                 if (playerListEntry != null) {
                     switch (packet.getAction()) {
                         case ADD_PLAYER -> {
-                            ((PlayerListEntryInvoker) playerListEntry).setGameMode(entry.getGameMode());
-                            ((PlayerListEntryInvoker) playerListEntry).setLatency(entry.getLatency());
+                            playerListEntry.setGameMode(entry.getGameMode());
+                            playerListEntry.setLatency(entry.getLatency());
                             playerListEntry.setDisplayName(entry.getDisplayName());
                         }
-                        case UPDATE_GAME_MODE -> ((PlayerListEntryInvoker) playerListEntry).setGameMode(entry.getGameMode());
-                        case UPDATE_LATENCY -> ((PlayerListEntryInvoker) playerListEntry).setLatency(entry.getLatency());
+                        case UPDATE_GAME_MODE -> playerListEntry.setGameMode(entry.getGameMode());
+                        case UPDATE_LATENCY -> playerListEntry.setLatency(entry.getLatency());
                         case UPDATE_DISPLAY_NAME -> playerListEntry.setDisplayName(entry.getDisplayName());
                     }
                 }

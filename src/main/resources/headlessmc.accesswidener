@@ -1,0 +1,5 @@
+accessWidener v1 named
+
+# net.minecraft.client.network.PlayerListEntry
+accessible method net/minecraft/client/network/PlayerListEntry setGameMode (Lnet/minecraft/world/GameMode;)V
+accessible method net/minecraft/client/network/PlayerListEntry setLatency (I)V

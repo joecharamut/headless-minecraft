@@ -4,8 +4,7 @@
   "package": "rocks.spaghetti.headlessmc.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "MinecraftClientAccessor",
-    "PlayerListEntryInvoker"
+    "MinecraftClientAccessor"
   ],
   "client": [
     "MinecraftClientMainMixin"
