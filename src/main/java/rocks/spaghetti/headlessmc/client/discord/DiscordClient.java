@@ -14,7 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import rocks.spaghetti.headlessmc.client.LaunchTarget;
-import rocks.spaghetti.headlessmc.client.lib.TextInterface;
+import rocks.spaghetti.headlessmc.client.lib.GameTextParser;
 import rocks.spaghetti.headlessmc.event.ClientChatCallback;
 import rocks.spaghetti.headlessmc.event.ClientTickCallback;
 import rocks.spaghetti.headlessmc.game.GameClient;
@@ -34,10 +34,13 @@ public class DiscordClient implements LaunchTarget {
     private GameClient client;
     private MessageChannel gameChannel;
     private Thread gameThread;
+    private GameTextParser parser;
 
     @Override
     public void run(RunArgs args) {
         this.client = new GameClient(args);
+        this.parser = new GameTextParser(client);
+
         String token = System.getenv("discord.token");
         try {
             JDA discord = JDABuilder
@@ -123,26 +126,9 @@ public class DiscordClient implements LaunchTarget {
                 }
             }
 
-            case "mc" -> new TextInterface().parse(content.substring(2));
-            case "a" -> {
-                switch (args[1]) {
-                    case "inv" -> {
-                        String inv = client.player.getInventory().main.stream()
-                                .map(item -> item.getCount() + " " + item.getItem().getName().getString())
-                                .collect(Collectors.joining(", "));
-                        gameChannel.sendMessage("Your inventory contains: " + inv).queue();
-                    }
-
-                    case "respawn" -> client.player.requestRespawn();
-
-                    case "jump" -> {
-                        ((SettableInput) client.player.input).jumping(true);
-                        ((SettableInput) client.player.input).movement(1,1);
-                    }
-
-                    default -> gameChannel.sendMessage("Invalid Command").queue();
-                }
-            }
+            case "mc" -> parser.parse(content.substring(2))
+                    .onSuccess(result -> gameChannel.sendMessage(result.message).queue())
+                    .onError(result -> gameChannel.sendMessage(result.message).queue());
         }
     }
 
