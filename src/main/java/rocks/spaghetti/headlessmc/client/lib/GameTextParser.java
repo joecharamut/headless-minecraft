@@ -3,8 +3,6 @@ package rocks.spaghetti.headlessmc.client.lib;
 import rocks.spaghetti.headlessmc.game.GameClient;
 import rocks.spaghetti.headlessmc.game.SettableInput;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -44,7 +42,7 @@ public class GameTextParser {
             };
         } catch (Exception e) {
             e.printStackTrace();
-            return new ParseResult(ParseResult.Status.ERROR, "Exception encountered while parsing: " + e.getMessage());
+            return new ParseResult(ParseResult.Status.ERROR, "Exception occurred while parsing: " + e.getMessage());
         }
     }
 
