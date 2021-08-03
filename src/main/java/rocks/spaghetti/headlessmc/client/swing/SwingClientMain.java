@@ -7,6 +7,9 @@ import rocks.spaghetti.headlessmc.client.swing.ui.ClientMainWindow;
 import rocks.spaghetti.headlessmc.game.GameClient;
 
 import java.awt.*;
+import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class SwingClientMain implements LaunchTarget {
     private ClientMainWindow mainWindow;
@@ -22,5 +25,18 @@ public class SwingClientMain implements LaunchTarget {
                 .onSuccess(result -> mainWindow.consolePrintln("< " + result.message, null))
                 .onError(result -> mainWindow.consolePrintln("< " + result.message, Color.RED))
         );
+
+        mainWindow.onQueryButton(address -> {
+            String[] parts = address.split(":");
+            String host = address;
+            int port = 25565;
+
+            if (parts.length > 1) {
+                host = String.join(":", parts);
+                port = Integer.parseInt(parts[parts.length - 1]);
+            }
+
+            client.query(new InetSocketAddress(host, port)).ifPresent(mainWindow::setQueryInfo);
+        });
     }
 }
