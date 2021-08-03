@@ -2,8 +2,9 @@ package rocks.spaghetti.headlessmc.client.swing.ui;
 
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.uiDesigner.core.Spacer;
 import net.minecraft.server.ServerMetadata;
-import org.lwjgl.system.CallbackI;
+import org.apache.commons.codec.binary.Base64;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
@@ -28,6 +29,10 @@ public class ClientMainWindow {
     private JTextField connectionAddressField;
     private JButton connectionQueryButton;
     private JButton connectionConnectButton;
+    private JLabel queryIcon;
+    private JLabel queryMotd;
+    private JLabel queryPlayerCount;
+    private JLabel queryVersion;
 
     private JFrame mainFrame;
     private int consoleScrollMax;
@@ -108,7 +113,12 @@ public class ClientMainWindow {
     }
 
     public void setQueryInfo(ServerMetadata metadata) {
-        System.out.println(metadata);
+        queryIcon.setIcon(new ImageIcon(Base64.decodeBase64(metadata.getFavicon().split(",")[1])));
+        queryMotd.setText(metadata.getDescription().getString());
+        queryVersion.setText(metadata.getVersion().getGameVersion());
+        queryPlayerCount.setText(metadata.getPlayers().getOnlinePlayerCount() + " / " + metadata.getPlayers().getPlayerLimit());
+
+        mainFrame.pack();
     }
 
     {
@@ -155,8 +165,23 @@ public class ClientMainWindow {
         tabbedPane2 = new JTabbedPane();
         panel1.add(tabbedPane2, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 200), null, 0, false));
         final JPanel panel3 = new JPanel();
-        panel3.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        panel3.setLayout(new GridLayoutManager(3, 3, new Insets(0, 0, 0, 0), -1, -1));
         tabbedPane2.addTab("Query Info", panel3);
+        queryIcon = new JLabel();
+        queryIcon.setEnabled(true);
+        queryIcon.setText("");
+        panel3.add(queryIcon, new GridConstraints(0, 0, 3, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(64, 64), null, 0, false));
+        final Spacer spacer1 = new Spacer();
+        panel3.add(spacer1, new GridConstraints(0, 2, 3, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        queryMotd = new JLabel();
+        queryMotd.setText("<unknown motd>");
+        panel3.add(queryMotd, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        queryVersion = new JLabel();
+        queryVersion.setText("<unknown version>");
+        panel3.add(queryVersion, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        queryPlayerCount = new JLabel();
+        queryPlayerCount.setText("<unknown playercount>");
+        panel3.add(queryPlayerCount, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel4 = new JPanel();
         panel4.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         tabbedPane2.addTab("Connection Info", panel4);

@@ -8,17 +8,14 @@ import rocks.spaghetti.headlessmc.game.GameClient;
 
 import java.awt.*;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 public class SwingClientMain implements LaunchTarget {
     private ClientMainWindow mainWindow;
 
     @Override
     public void run(RunArgs args) {
-        mainWindow = new ClientMainWindow();
-
         GameClient client = new GameClient(args);
+        mainWindow = new ClientMainWindow();
         GameTextParser parser = new GameTextParser(client);
 
         mainWindow.onConsoleInput(text -> parser.parse(text)

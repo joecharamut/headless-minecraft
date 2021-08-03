@@ -35,6 +35,7 @@ import net.minecraft.network.packet.s2c.query.QueryPongS2CPacket;
 import net.minecraft.network.packet.s2c.query.QueryResponseS2CPacket;
 import net.minecraft.resource.ReloadableResourceManager;
 import net.minecraft.resource.ReloadableResourceManagerImpl;
+import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.ServerMetadata;
 import net.minecraft.tag.ItemTags;
@@ -404,5 +405,12 @@ public class GameClient extends ReentrantThreadExecutor<Runnable> {
     @Override
     protected Thread getThread() {
         return gameThread;
+    }
+
+    /**
+     * {@link MinecraftClient#getResourceManager()}
+     */
+    public ResourceManager getResourceManager() {
+        return resourceManager;
     }
 }
