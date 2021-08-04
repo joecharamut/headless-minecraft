@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class Entrypoint implements ClientModInitializer, DedicatedServerModInitializer {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    public static void clientMain(RunArgs runArgs, String[] argv) {
+    public static void onInterceptMain(RunArgs runArgs, String[] argv) {
         Configurator.initialize(null, "classpath:log4j2_trace.xml");
 
         if (Arrays.asList(argv).contains("nogui")) {

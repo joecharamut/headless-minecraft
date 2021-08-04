@@ -113,7 +113,9 @@ public class ClientMainWindow {
     }
 
     public void setQueryInfo(ServerMetadata metadata) {
-        queryIcon.setIcon(new ImageIcon(Base64.decodeBase64(metadata.getFavicon().split(",")[1])));
+        if (metadata.getFavicon() != null) {
+            queryIcon.setIcon(new ImageIcon(Base64.decodeBase64(metadata.getFavicon().split(",")[1])));
+        }
         queryMotd.setText(metadata.getDescription().getString());
         queryVersion.setText(metadata.getVersion().getGameVersion());
         queryPlayerCount.setText(metadata.getPlayers().getOnlinePlayerCount() + " / " + metadata.getPlayers().getPlayerLimit());

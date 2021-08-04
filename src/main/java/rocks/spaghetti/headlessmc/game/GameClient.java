@@ -12,6 +12,10 @@ import net.minecraft.client.item.TooltipContext;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.GameOptions;
+import net.minecraft.client.resource.ClientBuiltinResourcePackProvider;
+import net.minecraft.client.resource.Format3ResourcePack;
+import net.minecraft.client.resource.Format4ResourcePack;
+import net.minecraft.client.resource.ResourceReloadLogger;
 import net.minecraft.client.search.IdentifierSearchableContainer;
 import net.minecraft.client.search.SearchManager;
 import net.minecraft.client.search.SearchableContainer;
@@ -33,16 +37,16 @@ import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import net.minecraft.network.packet.c2s.query.QueryRequestC2SPacket;
 import net.minecraft.network.packet.s2c.query.QueryPongS2CPacket;
 import net.minecraft.network.packet.s2c.query.QueryResponseS2CPacket;
-import net.minecraft.resource.ReloadableResourceManager;
-import net.minecraft.resource.ReloadableResourceManagerImpl;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourceType;
+import net.minecraft.resource.*;
 import net.minecraft.server.ServerMetadata;
 import net.minecraft.tag.ItemTags;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.Unit;
+import net.minecraft.util.Util;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.profiler.Profiler;
 import net.minecraft.util.profiler.ProfilerSystem;
@@ -59,12 +63,16 @@ import rocks.spaghetti.headlessmc.game.render.GameRendererStub;
 import rocks.spaghetti.headlessmc.mixin.MinecraftClientAccessor;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class GameClient extends ReentrantThreadExecutor<Runnable> {
@@ -81,6 +89,9 @@ public class GameClient extends ReentrantThreadExecutor<Runnable> {
     private final File runDirectory;
     private final SearchManager searchManager;
     private final TutorialManager tutorialManager;
+    private final ResourceReloadLogger resourceReloadLogger;
+    private final ClientBuiltinResourcePackProvider builtinPackProvider;
+    private final ResourcePackManager resourcePackManager;
 
     private Thread gameThread;
     private int ticks;
@@ -115,7 +126,25 @@ public class GameClient extends ReentrantThreadExecutor<Runnable> {
         this.options = new GameOptions(MinecraftClient.getInstance(), this.runDirectory);
         ReflectionUtil.setField(clientProxy, "options", this.options);
 
+        this.resourceReloadLogger = new ResourceReloadLogger();
+        this.builtinPackProvider = new ClientBuiltinResourcePackProvider(new File(this.runDirectory, "server-resource-packs"), args.directories.getResourceIndex());
+        this.resourcePackManager = new ResourcePackManager((name, displayName, alwaysEnabled, packFactory, metadata, initialPosition, source) -> {
+            int i = metadata.getPackFormat();
+            Supplier<ResourcePack> supplier = packFactory;
+
+            if (i <= 3) {
+                supplier = () -> new Format3ResourcePack(packFactory.get(), Format3ResourcePack.NEW_TO_OLD_MAP);
+            }
+
+            if (i <= 4) {
+                supplier = () -> new Format4ResourcePack(packFactory.get());
+            }
+
+            return new ResourcePackProfile(name, displayName, alwaysEnabled, supplier, metadata, ResourceType.CLIENT_RESOURCES, initialPosition, source);
+        }, this.builtinPackProvider, new FileResourcePackProvider(args.directories.resourcePackDir, ResourcePackSource.PACK_SOURCE_NONE));
         this.resourceManager = new ReloadableResourceManagerImpl(ResourceType.CLIENT_RESOURCES);
+        this.resourcePackManager.scanPacks();
+
         this.soundManager = new SoundManager(this.resourceManager, this.options);
 
         this.searchManager = new SearchManager();
@@ -123,6 +152,8 @@ public class GameClient extends ReentrantThreadExecutor<Runnable> {
         initializeSearchableContainers();
 
         this.tutorialManager = new TutorialManager(MinecraftClient.getInstance(), this.options);
+
+        this.resourceManager.reload(Util.getMainWorkerExecutor(), this, CompletableFuture.completedFuture(Unit.INSTANCE), this.resourcePackManager.createResourcePacks());
     }
 
     public static GameClient getInstance() {

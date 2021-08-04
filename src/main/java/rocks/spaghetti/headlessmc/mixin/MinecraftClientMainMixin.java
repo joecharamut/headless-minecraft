@@ -79,7 +79,7 @@ public abstract class MinecraftClientMainMixin {
                                      Integer integer,
                                      Session session,
                                      RunArgs runArgs) {
-        Entrypoint.clientMain(runArgs, args);
+        Entrypoint.onInterceptMain(runArgs, args);
         ci.cancel();
     }
 }
