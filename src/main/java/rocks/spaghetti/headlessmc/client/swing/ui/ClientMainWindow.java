@@ -3,8 +3,10 @@ package rocks.spaghetti.headlessmc.client.swing.ui;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.ServerMetadata;
 import org.apache.commons.codec.binary.Base64;
+import rocks.spaghetti.headlessmc.Util;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
@@ -60,6 +62,7 @@ public class ClientMainWindow {
                 queryButtonCallback.accept(text);
             }
         });
+        queryIcon.setIcon(new ImageIcon(Util.getResourceAsBytes("headlessmc:textures/gui/pack.png")));
     }
 
     private void setupConsoleTab() {
