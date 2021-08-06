@@ -16,6 +16,7 @@ import rocks.spaghetti.headlessmc.Entrypoint;
 
 import java.io.File;
 import java.net.Proxy;
+import java.util.Arrays;
 import java.util.OptionalInt;
 
 @Mixin(net.minecraft.client.main.Main.class)
@@ -79,7 +80,9 @@ public abstract class MinecraftClientMainMixin {
                                      Integer integer,
                                      Session session,
                                      RunArgs runArgs) {
-        Entrypoint.onInterceptMain(runArgs, args);
-        ci.cancel();
+        if (Arrays.asList(args).contains("nogui")) {
+            Entrypoint.onInterceptMain(runArgs, args);
+            ci.cancel();
+        }
     }
 }

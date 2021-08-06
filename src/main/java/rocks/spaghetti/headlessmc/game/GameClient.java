@@ -240,7 +240,7 @@ public class GameClient extends ReentrantThreadExecutor<Runnable> {
         try {
             conn = ClientConnection.connect(address, true);
         } catch (Exception e) {
-            LOGGER.fatal("Exception Caught: " + e);
+            LOGGER.fatal("Exception Caught: {}", e);
             return Optional.empty();
         }
 
@@ -423,6 +423,14 @@ public class GameClient extends ReentrantThreadExecutor<Runnable> {
         return this.player;
     }
 
+    /**
+     * {@link MinecraftClient#getResourceManager()}
+     */
+    @SuppressWarnings("unused")
+    public ResourceManager getResourceManager() {
+        return resourceManager;
+    }
+
     @Override
     protected Runnable createTask(Runnable runnable) {
         return runnable;
@@ -436,12 +444,5 @@ public class GameClient extends ReentrantThreadExecutor<Runnable> {
     @Override
     protected Thread getThread() {
         return gameThread;
-    }
-
-    /**
-     * {@link MinecraftClient#getResourceManager()}
-     */
-    public ResourceManager getResourceManager() {
-        return resourceManager;
     }
 }

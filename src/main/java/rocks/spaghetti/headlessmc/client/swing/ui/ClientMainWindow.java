@@ -3,12 +3,12 @@ package rocks.spaghetti.headlessmc.client.swing.ui;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.ServerMetadata;
 import org.apache.commons.codec.binary.Base64;
 import rocks.spaghetti.headlessmc.Util;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
@@ -16,18 +16,19 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.Locale;
 import java.util.function.Consumer;
 
 @SuppressWarnings({"java:S1171", "java:S100"})
 public class ClientMainWindow {
     private JPanel root;
-    private JTabbedPane tabbedPane1;
+    private JTabbedPane mainTabbedPane;
     private JTextPane consoleMessagePane;
     private JTextField consoleInputField;
     private JButton consoleSubmitButton;
     private JScrollPane consoleScrollPane;
-    private JTabbedPane tabbedPane2;
     private JTextField connectionAddressField;
     private JButton connectionQueryButton;
     private JButton connectionConnectButton;
@@ -41,6 +42,7 @@ public class ClientMainWindow {
 
     private Consumer<String> consoleInputCallback = null;
     private Consumer<String> queryButtonCallback = null;
+    private Consumer<String> connectButtonCallback = null;
 
     public ClientMainWindow() {
         mainFrame = new JFrame("ClientMainWindow");
@@ -57,12 +59,20 @@ public class ClientMainWindow {
 
     private void setupConnectionTab() {
         connectionQueryButton.addActionListener(e -> {
-            String text = connectionAddressField.getText();
-            if (!text.isEmpty() && queryButtonCallback != null) {
-                queryButtonCallback.accept(text);
+            String address = connectionAddressField.getText();
+            if (!address.isEmpty() && queryButtonCallback != null) {
+                queryButtonCallback.accept(address);
             }
         });
-        queryIcon.setIcon(new ImageIcon(Util.getResourceAsBytes("minecraft:textures/gui/presets/isles.png")));
+
+        connectionConnectButton.addActionListener(e -> {
+            String address = connectionAddressField.getText();
+            if (!address.isEmpty() && connectButtonCallback != null) {
+                connectButtonCallback.accept(address);
+            }
+        });
+
+        queryIcon.setIcon(new ImageIcon(Util.getResourceAsBytes("minecraft:textures/misc/unknown_server.png")));
     }
 
     private void setupConsoleTab() {
@@ -99,12 +109,17 @@ public class ClientMainWindow {
 
         if (foregroundColor != null) {
             attrs = style.addAttribute(attrs, StyleConstants.Foreground, foregroundColor);
+        } else {
+            attrs = style.addAttribute(attrs, StyleConstants.Foreground, Color.BLACK);
         }
 
         int len = consoleMessagePane.getDocument().getLength();
         consoleMessagePane.setCaretPosition(len);
         consoleMessagePane.setCharacterAttributes(attrs, false);
+
+        consoleMessagePane.setEditable(true);
         consoleMessagePane.replaceSelection(message);
+        consoleMessagePane.setEditable(false);
     }
 
     public void onConsoleInput(Consumer<String> callback) {
@@ -118,12 +133,32 @@ public class ClientMainWindow {
     public void setQueryInfo(ServerMetadata metadata) {
         if (metadata.getFavicon() != null) {
             queryIcon.setIcon(new ImageIcon(Base64.decodeBase64(metadata.getFavicon().split(",")[1])));
+        } else {
+            queryIcon.setIcon(new ImageIcon(Util.getResourceAsBytes("minecraft:textures/misc/unknown_server.png")));
         }
-        queryMotd.setText(metadata.getDescription().getString());
-        queryVersion.setText(metadata.getVersion().getGameVersion());
-        queryPlayerCount.setText(metadata.getPlayers().getOnlinePlayerCount() + " / " + metadata.getPlayers().getPlayerLimit());
+
+        queryMotd.setText("MOTD: " + metadata.getDescription().getString());
+        queryVersion.setText("Version: " + metadata.getVersion().getGameVersion());
+        queryPlayerCount.setText("Online Players: " + metadata.getPlayers().getOnlinePlayerCount() + " / " + metadata.getPlayers().getPlayerLimit());
 
         mainFrame.pack();
+    }
+
+    public void onConnectButton(Consumer<String> callback) {
+        connectButtonCallback = callback;
+    }
+
+    public void setTab(String tabName) {
+        mainTabbedPane.setSelectedIndex(mainTabbedPane.indexOfTab(tabName));
+    }
+
+    public void onClose(Runnable callback) {
+        mainFrame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                callback.run();
+            }
+        });
     }
 
     {
@@ -143,11 +178,11 @@ public class ClientMainWindow {
     private void $$$setupUI$$$() {
         root = new JPanel();
         root.setLayout(new GridLayoutManager(1, 1, new Insets(4, 4, 4, 4), -1, -1));
-        tabbedPane1 = new JTabbedPane();
-        root.add(tabbedPane1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 200), null, 0, false));
+        mainTabbedPane = new JTabbedPane();
+        root.add(mainTabbedPane, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 200), null, 0, false));
         final JPanel panel1 = new JPanel();
         panel1.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
-        tabbedPane1.addTab("Connection", panel1);
+        mainTabbedPane.addTab("Connection", panel1);
         final JLabel label1 = new JLabel();
         Font label1Font = this.$$$getFont$$$(null, Font.BOLD, -1, label1.getFont());
         if (label1Font != null) label1.setFont(label1Font);
@@ -167,15 +202,14 @@ public class ClientMainWindow {
         connectionConnectButton = new JButton();
         connectionConnectButton.setText("Connect");
         panel2.add(connectionConnectButton, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        tabbedPane2 = new JTabbedPane();
-        panel1.add(tabbedPane2, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 200), null, 0, false));
         final JPanel panel3 = new JPanel();
         panel3.setLayout(new GridLayoutManager(3, 3, new Insets(0, 0, 0, 0), -1, -1));
-        tabbedPane2.addTab("Query Info", panel3);
+        panel1.add(panel3, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        panel3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Query Info", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         queryIcon = new JLabel();
         queryIcon.setEnabled(true);
         queryIcon.setText("");
-        panel3.add(queryIcon, new GridConstraints(0, 0, 3, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(64, 64), null, 0, false));
+        panel3.add(queryIcon, new GridConstraints(0, 0, 3, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(64, 64), new Dimension(64, 64), new Dimension(64, 64), 0, false));
         final Spacer spacer1 = new Spacer();
         panel3.add(spacer1, new GridConstraints(0, 2, 3, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         queryMotd = new JLabel();
@@ -188,21 +222,19 @@ public class ClientMainWindow {
         queryPlayerCount.setText("<unknown playercount>");
         panel3.add(queryPlayerCount, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel4 = new JPanel();
-        panel4.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        tabbedPane2.addTab("Connection Info", panel4);
-        final JPanel panel5 = new JPanel();
-        panel5.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
-        tabbedPane1.addTab("Console", panel5);
+        panel4.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+        mainTabbedPane.addTab("Console", panel4);
         consoleScrollPane = new JScrollPane();
-        panel5.add(consoleScrollPane, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        panel4.add(consoleScrollPane, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         consoleMessagePane = new JTextPane();
         consoleMessagePane.setEditable(false);
+        consoleMessagePane.setEnabled(true);
         consoleScrollPane.setViewportView(consoleMessagePane);
         consoleInputField = new JTextField();
-        panel5.add(consoleInputField, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        panel4.add(consoleInputField, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         consoleSubmitButton = new JButton();
         consoleSubmitButton.setText("Submit");
-        panel5.add(consoleSubmitButton, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel4.add(consoleSubmitButton, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**
