@@ -1,7 +1,6 @@
 package rocks.spaghetti.headlessmc;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.Resource;
 import net.minecraft.util.Identifier;
 
 import java.io.IOException;

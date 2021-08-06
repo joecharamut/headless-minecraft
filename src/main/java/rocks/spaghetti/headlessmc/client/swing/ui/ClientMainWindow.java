@@ -62,7 +62,7 @@ public class ClientMainWindow {
                 queryButtonCallback.accept(text);
             }
         });
-        queryIcon.setIcon(new ImageIcon(Util.getResourceAsBytes("headlessmc:textures/gui/pack.png")));
+        queryIcon.setIcon(new ImageIcon(Util.getResourceAsBytes("minecraft:textures/gui/presets/isles.png")));
     }
 
     private void setupConsoleTab() {
