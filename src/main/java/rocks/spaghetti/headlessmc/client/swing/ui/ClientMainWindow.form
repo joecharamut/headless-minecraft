@@ -88,7 +88,6 @@
                     <constraints>
                       <grid row="0" column="0" row-span="3" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
                         <minimum-size width="64" height="64"/>
-                        <preferred-size width="64" height="64"/>
                       </grid>
                     </constraints>
                     <properties>

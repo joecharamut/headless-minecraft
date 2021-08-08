@@ -4,10 +4,7 @@
   "version": "${version}",
 
   "environment": "client",
-  "entrypoints": {
-    "client": [ "rocks.spaghetti.headlessmc.Entrypoint" ],
-    "server": [ "rocks.spaghetti.headlessmc.Entrypoint" ]
-  },
+  "entrypoints": { },
   "mixins": [
     "headlessmc.mixins.json"
   ],

@@ -6,7 +6,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
-import rocks.spaghetti.headlessmc.ReflectionUtil;
+import rocks.spaghetti.headlessmc.util.ReflectionUtil;
 
 /**
  * Proxy class

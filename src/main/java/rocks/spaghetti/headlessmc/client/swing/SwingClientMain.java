@@ -3,7 +3,7 @@ package rocks.spaghetti.headlessmc.client.swing;
 import net.minecraft.client.RunArgs;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import rocks.spaghetti.headlessmc.Util;
+import rocks.spaghetti.headlessmc.util.Util;
 import rocks.spaghetti.headlessmc.client.LaunchTarget;
 import rocks.spaghetti.headlessmc.client.lib.GameTextParser;
 import rocks.spaghetti.headlessmc.client.swing.ui.ClientMainWindow;
@@ -46,7 +46,7 @@ public class SwingClientMain implements LaunchTarget {
 
             ClientChatCallback.EVENT.register((location, message, sender) -> {
                 LOGGER.info("[CHAT] {}", message.getString());
-                mainWindow.consolePrintln(String.format("[CHAT] %s", message.getString()), null);
+                mainWindow.consolePrintln(String.format("> [CHAT] %s", message.getString()), null);
             });
 
             ClientTickCallback.EVENT.register((game -> {

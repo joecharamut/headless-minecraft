@@ -2,7 +2,7 @@ package rocks.spaghetti.headlessmc.game.render;
 
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
-import rocks.spaghetti.headlessmc.ReflectionUtil;
+import rocks.spaghetti.headlessmc.util.ReflectionUtil;
 
 /**
  * Proxy class

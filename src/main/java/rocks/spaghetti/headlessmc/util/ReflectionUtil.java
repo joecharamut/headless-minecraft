@@ -1,4 +1,4 @@
-package rocks.spaghetti.headlessmc;
+package rocks.spaghetti.headlessmc.util;
 
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.Proxy;

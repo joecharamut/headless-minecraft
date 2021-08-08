@@ -11,7 +11,7 @@ public class Entrypoint {
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static void onInterceptMain(RunArgs runArgs, String[] argv) {
-//        Configurator.initialize(null, "classpath:log4j2_trace.xml");
+        Configurator.initialize(null, "classpath:log4j2_trace.xml");
 //        new DiscordClient().run(runArgs);
         new SwingClientMain().run(runArgs);
     }

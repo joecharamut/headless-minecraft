@@ -42,7 +42,7 @@ import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
-import rocks.spaghetti.headlessmc.ReflectionUtil;
+import rocks.spaghetti.headlessmc.util.ReflectionUtil;
 import rocks.spaghetti.headlessmc.game.network.PlayNetworkHandler;
 
 import java.util.List;

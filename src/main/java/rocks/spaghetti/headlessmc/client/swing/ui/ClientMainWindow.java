@@ -5,7 +5,7 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import net.minecraft.server.ServerMetadata;
 import org.apache.commons.codec.binary.Base64;
-import rocks.spaghetti.headlessmc.Util;
+import rocks.spaghetti.headlessmc.util.Util;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -209,7 +209,7 @@ public class ClientMainWindow {
         queryIcon = new JLabel();
         queryIcon.setEnabled(true);
         queryIcon.setText("");
-        panel3.add(queryIcon, new GridConstraints(0, 0, 3, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(64, 64), new Dimension(64, 64), new Dimension(64, 64), 0, false));
+        panel3.add(queryIcon, new GridConstraints(0, 0, 3, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(64, 64), null, null, 0, false));
         final Spacer spacer1 = new Spacer();
         panel3.add(spacer1, new GridConstraints(0, 2, 3, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         queryMotd = new JLabel();
