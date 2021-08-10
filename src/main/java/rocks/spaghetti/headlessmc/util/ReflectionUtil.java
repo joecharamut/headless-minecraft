@@ -55,11 +55,28 @@ public class ReflectionUtil {
         return builder.toString();
     }
 
-    private static Method[] getInstanceMethods(Class<?> clazz) {
+    public static Method[] getInstanceMethods(Class<?> clazz) {
         return Stream.of(clazz.getMethods(), clazz.getDeclaredMethods())
                 .flatMap(Arrays::stream)
                 .filter(m -> !Modifier.isStatic(m.getModifiers()))
                 .toArray(Method[]::new);
+    }
+
+    public static Field[] getPublicFields(Class<?> clazz) {
+        return Stream.of(clazz.getFields(), clazz.getDeclaredFields())
+                .flatMap(Arrays::stream)
+                .filter(f -> Modifier.isPublic(f.getModifiers()))
+                .filter(f -> !Modifier.isStatic(f.getModifiers()))
+                .toArray(Field[]::new);
+    }
+
+    public static boolean hasField(Class<?> clazz, String field) {
+        try {
+            clazz.getField(field);
+            return true;
+        } catch (NoSuchFieldException e) {
+            return false;
+        }
     }
 
     /**
@@ -89,6 +106,16 @@ public class ReflectionUtil {
 
         Object obj = new ObjenesisStd().getInstantiatorOf(clazz).newInstance();
         ((Proxy) obj).setHandler(handler);
+
+        for (Field f : getPublicFields(proxyClass)) {
+            String fieldName = f.getName();
+            Class<?> fieldClass = target.getClass();
+
+            if (hasField(fieldClass, fieldName)) {
+                setField(obj, fieldName, getField(target, fieldName, fieldClass));
+            }
+        }
+
         return (T) obj;
     }
 
@@ -110,11 +137,11 @@ public class ReflectionUtil {
         }
     }
 
-    public static Object getField(Object instance, String fieldName) {
+    public static <T> T getField(Object instance, String fieldName, Class<T> fieldType) {
         try {
             Field field = getFieldByName(instance.getClass(), fieldName);
             field.setAccessible(true);
-            return field.get(instance);
+            return fieldType.cast(field.get(instance));
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }

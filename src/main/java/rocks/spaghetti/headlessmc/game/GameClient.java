@@ -205,21 +205,22 @@ public class GameClient extends ReentrantThreadExecutor<Runnable> {
             connection.tick();
             this.runTasks();
 
-            if (this.player != null) {
-                player.tickMovement();
-            }
-
-            if (this.world != null) {
-                this.world.tickEntities();
-            }
-
             // 20 tps = 50ms/tick
             if (delta >= 50) {
-
                 lastTime = curTime;
                 ticks++;
-                ClientTickCallback.EVENT.invoker().onTick(this);
 
+                ClientTickCallback.START_TICK.invoker().onTick(this);
+
+                if (this.player != null) {
+                    player.tickMovement();
+                }
+
+                if (this.world != null) {
+                    this.world.tickEntities();
+                }
+
+                ClientTickCallback.END_TICK.invoker().onTick(this);
             }
 
             profiler.endTick();

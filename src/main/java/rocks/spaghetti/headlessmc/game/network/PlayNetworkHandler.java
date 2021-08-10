@@ -11,6 +11,7 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.*;
 import net.minecraft.client.ClientBrandRetriever;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.recipebook.RecipeResultCollection;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.PlayerListEntry;
@@ -39,9 +40,7 @@ import net.minecraft.network.NetworkThreadUtils;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.c2s.play.CustomPayloadC2SPacket;
-import net.minecraft.network.packet.c2s.play.KeepAliveC2SPacket;
-import net.minecraft.network.packet.c2s.play.PlayPongC2SPacket;
+import net.minecraft.network.packet.c2s.play.*;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.recipe.RecipeManager;
 import net.minecraft.sound.SoundEvents;
@@ -57,6 +56,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.util.thread.ThreadExecutor;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.LightType;
 import net.minecraft.world.World;
@@ -474,7 +474,69 @@ public class PlayNetworkHandler implements ClientPlayPacketListener {
 
     @Override
     public void onPlayerPositionLook(PlayerPositionLookS2CPacket packet) {
-        LOGGER.debug("Packet Stub: {}", packet);
+        NetworkThreadUtils.forceMainThread(packet, this, this.client);
+        PlayerEntity playerEntity = this.client.player;
+        if (packet.shouldDismount()) {
+            playerEntity.dismountVehicle();
+        }
+
+        Vec3d velocity = playerEntity.getVelocity();
+        double x;
+        double dx;
+        if (packet.getFlags().contains(PlayerPositionLookS2CPacket.Flag.X)) {
+            x = velocity.getX();
+            dx = playerEntity.getX() + packet.getX();
+            playerEntity.lastRenderX += packet.getX();
+        } else {
+            x = 0.0D;
+            dx = packet.getX();
+            playerEntity.lastRenderX = dx;
+        }
+
+        double y;
+        double dy;
+        if (packet.getFlags().contains(PlayerPositionLookS2CPacket.Flag.Y)) {
+            y = velocity.getY();
+            dy = playerEntity.getY() + packet.getY();
+            playerEntity.lastRenderY += packet.getY();
+        } else {
+            y = 0.0D;
+            dy = packet.getY();
+            playerEntity.lastRenderY = dy;
+        }
+
+        double z;
+        double dz;
+        if (packet.getFlags().contains(PlayerPositionLookS2CPacket.Flag.Z)) {
+            z = velocity.getZ();
+            dz = playerEntity.getZ() + packet.getZ();
+            playerEntity.lastRenderZ += packet.getZ();
+        } else {
+            z = 0.0D;
+            dz = packet.getZ();
+            playerEntity.lastRenderZ = dz;
+        }
+
+        playerEntity.setPos(dx, dy, dz);
+        playerEntity.prevX = dx;
+        playerEntity.prevY = dy;
+        playerEntity.prevZ = dz;
+        playerEntity.setVelocity(x, y, z);
+
+        float yaw = packet.getYaw();
+        float pitch = packet.getPitch();
+
+        if (packet.getFlags().contains(PlayerPositionLookS2CPacket.Flag.X_ROT)) {
+            pitch += playerEntity.getPitch();
+        }
+
+        if (packet.getFlags().contains(PlayerPositionLookS2CPacket.Flag.Y_ROT)) {
+            yaw += playerEntity.getYaw();
+        }
+
+        playerEntity.updatePositionAndAngles(dx, dy, dz, yaw, pitch);
+        this.connection.send(new TeleportConfirmC2SPacket(packet.getTeleportId()));
+        this.connection.send(new PlayerMoveC2SPacket.Full(playerEntity.getX(), playerEntity.getY(), playerEntity.getZ(), playerEntity.getYaw(), playerEntity.getPitch(), false));
     }
 
     @Override
@@ -610,7 +672,10 @@ public class PlayNetworkHandler implements ClientPlayPacketListener {
 
     @Override
     public void onHealthUpdate(HealthUpdateS2CPacket packet) {
-        LOGGER.debug("Packet Stub: {}", packet);
+        NetworkThreadUtils.forceMainThread(packet, this, this.client);
+        this.client.player.updateHealth(packet.getHealth());
+        this.client.player.getHungerManager().setFoodLevel(packet.getFood());
+        this.client.player.getHungerManager().setSaturationLevel(packet.getSaturation());
     }
 
     @Override

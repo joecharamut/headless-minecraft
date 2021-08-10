@@ -17,7 +17,7 @@ public class GameTextParser {
         String[] args = command.split(" ");
 
         try {
-            return switch (args[0]) {
+            return switch (args[0].toLowerCase()) {
                 case "inv" -> {
                     String inv = client.player.getInventory().main.stream()
                             .map(item -> item.getCount() + " " + item.getItem().getName().getString())
@@ -33,9 +33,34 @@ public class GameTextParser {
                 }
 
                 case "jump" -> {
-                    ((SettableInput) client.player.input).jumping(true);
+                    SettableInput input = ((SettableInput) client.player.input);
+                    if (args.length > 1) {
+                        boolean jump = Boolean.parseBoolean(args[1]);
+                        input.jumping(jump);
+                        yield new ParseResult(ParseResult.Status.SUCCESS, "Set jump state to " + jump);
+                    } else {
+                        boolean last = input.jumping;
+                        input.jumping(!last);
+                        yield new ParseResult(ParseResult.Status.SUCCESS, "Toggled jump state (now: " + !last + ")");
+                    }
+                }
 
-                    yield new ParseResult(ParseResult.Status.SUCCESS, "Toggled jump state");
+                case "walk" -> {
+                    float forwards = 0.0F;
+                    float sideways = 0.0F;
+
+                    for (int i = 1; i < args.length; i++) {
+                        switch (args[i].toLowerCase()) {
+                            case "forward" -> forwards = 1.0F;
+                            case "backward" -> forwards = -1.0F;
+                            case "right" -> sideways = 1.0F;
+                            case "left" -> sideways = -1.0F;
+                        }
+                    }
+
+                    ((SettableInput) client.player.input).movement(forwards, sideways);
+
+                    yield new ParseResult(ParseResult.Status.SUCCESS, args.length > 1 ? "Applied movement" : "Cleared movement");
                 }
 
                 default -> new ParseResult(ParseResult.Status.ERROR, "Unknown Command: " + args[0]);

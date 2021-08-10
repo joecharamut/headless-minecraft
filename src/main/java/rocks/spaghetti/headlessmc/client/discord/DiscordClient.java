@@ -18,12 +18,10 @@ import rocks.spaghetti.headlessmc.client.lib.GameTextParser;
 import rocks.spaghetti.headlessmc.event.ClientChatCallback;
 import rocks.spaghetti.headlessmc.event.ClientTickCallback;
 import rocks.spaghetti.headlessmc.game.GameClient;
-import rocks.spaghetti.headlessmc.game.SettableInput;
 import rocks.spaghetti.headlessmc.game.auth.AuthInfo;
 
 import javax.security.auth.login.LoginException;
 import java.net.InetSocketAddress;
-import java.util.stream.Collectors;
 
 public class DiscordClient implements LaunchTarget {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -141,7 +139,7 @@ public class DiscordClient implements LaunchTarget {
             gameChannel.sendMessage("[CHAT] " + message.getString()).queue();
         });
 
-        ClientTickCallback.EVENT.register((game -> {
+        ClientTickCallback.START_TICK.register((game -> {
             switch (ticks++) {
                 case 20 -> {
                     client.sendChatMessage("minecraft zombie says bruh");

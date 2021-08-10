@@ -5,7 +5,13 @@ import net.fabricmc.fabric.api.event.EventFactory;
 import rocks.spaghetti.headlessmc.game.GameClient;
 
 public interface ClientTickCallback {
-    Event<ClientTickCallback> EVENT = EventFactory.createArrayBacked(ClientTickCallback.class, (listeners) -> (client) -> {
+    Event<ClientTickCallback> START_TICK = EventFactory.createArrayBacked(ClientTickCallback.class, (listeners) -> (client) -> {
+        for (ClientTickCallback listener : listeners) {
+            listener.onTick(client);
+        }
+    });
+
+    Event<ClientTickCallback> END_TICK = EventFactory.createArrayBacked(ClientTickCallback.class, (listeners) -> (client) -> {
         for (ClientTickCallback listener : listeners) {
             listener.onTick(client);
         }

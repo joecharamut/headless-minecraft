@@ -49,7 +49,7 @@ public class SwingClientMain implements LaunchTarget {
                 mainWindow.consolePrintln(String.format("> [CHAT] %s", message.getString()), null);
             });
 
-            ClientTickCallback.EVENT.register((game -> {
+            ClientTickCallback.START_TICK.register((game -> {
                 switch (ticks++) {
                     case 20 -> {
                         client.sendChatMessage("minecraft zombie says bruh");
